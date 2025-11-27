@@ -1,0 +1,70 @@
+src/
+├── index.js                 // React 진입점(엔트리) - 앱을 DOM에 마운트하는 파일 (이름 고정 권장)
+├── App.jsx                  // 라우터 + 전체 앱 루트 컴포넌트
+├── App.css                  // 앱 전역 스타일
+
+├── layout/
+│   └── MainLayout.jsx       // 사이드바 + 헤더 + 메인 콘텐츠를 감싸는 공통 레이아웃
+
+├── pages/
+│   ├── mainboard/
+│   │   └── MainBoardPage.jsx            // 메인 보드 화면 (보호 상태, 검사 버튼, 감시 폴더, 최근 이벤트)
+│   ├── notifications/
+│   │   ├── NotificationPage.jsx        // 알림 히스토리 리스트 화면 (알림 목록 요약)
+│   │   ├── NotificationDetailPage.jsx   // 알림 상세 정보 화면 (등급, 파일명, 경로, 시간 등)
+│   │   └── NotificationStatsPage.jsx    // 알림 통계/그래프 화면 (일/주간 통계, 비율 차트)
+│   ├── logs/
+│   │   └── LogsPage.jsx                 // 탐지 로그 전체 목록 화면 (검색/필터/내보내기 진입)
+│   └── settings/
+│       ├── SettingHomePage.jsx         // 설정 홈 화면 (감시 폴더/예외/알림/초기화/업데이트/피드백 메뉴 카드)
+│       ├── SettingFoldersPage.jsx      // 설정 - 감시 폴더 관리 화면 (폴더 추가/삭제)
+│       ├── SettingExceptionsPage.jsx   // 설정 - 예외(화이트리스트) 관리 화면 (제외 파일/폴더 등록/해제)
+│       ├── SettingNotifyPage.jsx       // 설정 - 알림 방식 설정 화면 (팝업/소리/트레이 옵션)
+│       ├── SettingResetPage.jsx        // 설정 - 초기화/복원 화면 (설정 기본값 복원)
+│       ├── SettingUpdatePage.jsx       // 설정 - 버전/업데이트 정보 화면
+│       └── SettingFeedbackPage.jsx     // 설정 - 문의/피드백 작성/전송 화면
+
+├── components/
+│   ├── common/
+│   │   ├── NavSidebar.jsx               // 좌측 네비게이션 사이드바 (메뉴: 메인/알림/로그/설정)
+│   │   ├── HeaderBar.jsx                // 상단 헤더바 (타이틀, 간단한 상태/세션 표시)
+│   │   ├── Button.jsx                   // 공통 버튼 컴포넌트 (스타일 일관성 유지)
+│   │   ├── Modal.jsx                    // 공통 모달 컴포넌트 (로그/알림 상세 등에서 사용)
+│   │   ├── ProgressBar.jsx              // 공통 진행률 바 컴포넌트 (검사 진행률 표시)
+│   │   └── Table.jsx                    // 공통 테이블 컴포넌트 (로그/알림 리스트 등에 사용)
+│   │
+│   ├── protection/
+│   │   ├── ProtectionStatusBadge.jsx    // 보호 상태 뱃지(녹/노/적) 표시 컴포넌트
+│   │   ├── ScanControlPanel.jsx         // 검사 시작/일시중지 버튼 + 진행률을 묶은 컨트롤 패널
+│   │   └── RecentEventsPanel.jsx        // 최근 탐지 이벤트 3~5개 요약 패널
+│   │
+│   ├── folders/
+│   │   └── FolderListManager.jsx        // 감시 대상 폴더 리스트 + 추가/삭제 UI 관리 컴포넌트
+│   │
+│   ├── notifications/
+│   │   ├── NotificationList.jsx         // 알림 리스트(히스토리) 컴포넌트
+│   │   ├── NotificationItem.jsx         // 알림 리스트 개별 항목(한 줄) 컴포넌트
+│   │   ├── NotificationDetailView.jsx   // 알림 상세 내용 표시용 뷰 컴포넌트
+│   │   └── NotificationStatsChart.jsx   // 알림 통계 차트(그래프) 컴포넌트
+│   │
+│   └── logs/
+│       ├── LogTable.jsx                 // 로그 테이블 컴포넌트 (컬럼/행 표시)
+│       ├── LogFilterBar.jsx             // 로그 검색/필터 바(기간, 키워드, 위험도) 컴포넌트
+│       └── LogDetailModal.jsx           // 로그 상세 모달(행 클릭 시 상세 정보) 컴포넌트
+
+├── api/
+│   ├── HttpClient.js                    // 공통 HTTP 클라이언트 (baseURL, fetch wrapper)
+│   ├── WatcherApi.js                    // 감시 시작/중지 관련 API 모듈 (/watcher/start, /watcher/stop)
+│   ├── LogsApi.js                       // 로그 조회/검색/삭제/내보내기 관련 API 모듈
+│   ├── NotificationsApi.js              // 알림 히스토리/상세/통계 관련 API 모듈
+│   └── SettingsApi.js                   // 설정(감시 폴더/예외/알림 옵션/초기화/피드백) 관련 API 모듈
+
+├── hooks/
+│   ├── UseProtectionStatus.js           // 보호 상태(녹/노/적) + 마지막 검사 시각 등을 관리하는 커스텀 훅
+│   ├── UseWatchedFolders.js             // 감시 대상 폴더 리스트 상태 + CRUD 로직을 관리하는 훅
+│   ├── UseNotifications.js              // 알림 리스트/상세/읽음 여부 등을 관리하는 훅
+│   └── UseLogs.js                       // 로그 목록/검색/필터/페이지네이션을 관리하는 훅
+
+└── styles/
+    ├── Layout.css                       // 전체 레이아웃(루트, 사이드바, 헤더, 컨텐츠 영역) 스타일
+    └── Components.css                   // 버튼, 카드, 패널, 리스트 등 공통 컴포넌트 스타일
