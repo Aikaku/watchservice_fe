@@ -1,189 +1,68 @@
-.
-└── src/
-    ├── App.js                       # [Root Component] 전체 라우팅 & 페이지 구조 최상위 컴포넌트
-    ├── App.css                      # [Style] App 전역 스타일
-    ├── index.js                     # [Entry] React 진입점, <App />를 DOM에 마운트
-    ├── index.css                    # [Style] 전역 베이스 스타일 (body, 폰트 등)
-    ├── logo.svg                     # [Asset] 로고 이미지
-    ├── reportWebVitals.js           # [Util] 성능 측정용 (CRA 기본 템플릿)
-    ├── App.test.js                  # [Test] 기본 테스트 템플릿
-    └── setupTests.js                # [Test] 테스트 환경 설정
-
-    ├── layout/
-    │   └── MainLayout.jsx           # [Layout] 좌측 NavSidebar + 상단 HeaderBar + 우측 콘텐츠 레이아웃
-
-    ├── styles/
-    │   ├── layout.css               # [Style] 레이아웃 관련 스타일 (사이드바, 메인 영역 등)
-    │   └── component.css            # [Style] 공통 컴포넌트 스타일 (버튼, 카드, 테이블 등)
-
-    ├── components/
-    │   ├── common/
-    │   │   ├── HeaderBar.jsx        # [Component] 상단 헤더 (제목, 상태, 우측 버튼 등)
-    │   │   ├── NavSidebar.jsx       # [Component] 좌측 네비게이션 (대시보드/로그/알림/설정 메뉴)
-    │   │   ├── Button.jsx           # [Component] 공통 버튼
-    │   │   ├── Table.jsx            # [Component] 공통 테이블 (컬럼 정의 + 데이터 렌더링)
-    │   │   ├── Modal.jsx            # [Component] 공통 모달 (로그/알림 상세 등)
-    │   │   └── ProgressBar.jsx      # [Component] 진행률 바 (보호 상태/스캔 진행률 표시)
-    │   │
-    │   ├── protection/
-    │   │   ├── ProtectionStatusBadge.jsx  # [Component] “안전/주의/위험” 상태 뱃지
-    │   │   ├── ScanControlPanel.jsx       # [Component] 실시간 보호/스캔 제어 패널 (감시 시작/중지 버튼 등)
-    │   │   └── RecentEventsPanel.jsx      # [Component] 최근 이벤트 몇 건 요약 패널
-    │   │
-    │   ├── logs/
-    │   │   ├── LogFilterBar.jsx           # [Component] 로그 검색/필터 바 (키워드, 위험도 등)
-    │   │   ├── LogTable.jsx               # [Component] 로그 리스트 테이블 (LogResponse 배열 렌더링)
-    │   │   └── LogDetailModal.jsx         # [Component] 로그 한 건 상세 모달 (파일/AI 정보)
-    │   │
-    │   ├── folders/
-    │   │   └── FolderListManager.jsx      # [Component] 감시 폴더 목록 관리 UI (추가/삭제, path 표시)
-    │   │
-    │   └── notifications/
-    │       ├── NotificationStatusChart.jsx # [Component] 알림 통계 차트 (위험/주의 개수 등)
-    │       ├── NotificationList.jsx        # [Component] 알림 리스트 UI
-    │       ├── NotificationItem.jsx        # [Component] 알림 한 건 카드/행
-    │       └── NotificationDetailView.jsx  # [Component] 알림 상세 정보 뷰
-
-    ├── hooks/
-    │   ├── UseLogs.js               # [Hook] /logs/recent 호출, 로그 리스트/로딩/에러 상태 관리
-    │   ├── UseNotifications.js      # [Hook] 알림용 데이터 훅 (지금은 /logs/recent 재사용)
-    │   ├── UseWatchedFolders.js     # [Hook] 감시 폴더 목록 관리 (현재 localStorage 기반, 이후 /settings/folders 연동 예정)
-    │   ├── UseExceptions.js         # [Hook] 예외(화이트리스트) 규칙 관리 (현재 localStorage, 이후 /settings/exceptions 연동 예정)
-    │   └── UseProtectionStatus.js   # [Hook] 보호 상태(대시보드 상단 상태) 관리 훅 (향후 /dashboard/summary와 연동 예정)
-
-    ├── api/
-    │   ├── HttpClient.js            # [API] 공통 HTTP 클라이언트 (BASE_URL, get/post 래퍼)
-    │   ├── WatcherApi.js            # [API] /watcher/start, /watcher/stop 감시 제어 API
-    │   ├── LogsApi.js               # [API] /logs/recent 로그 조회 API
-    │   ├── DashboardApi.js          # [API] /dashboard/summary 대시보드 요약 API
-    │   ├── NotificationsApi.js      # [API] 알림용 API (현재 /logs/recent를 래핑)
-    │   └── SettingApi.js            # [API] 설정 관련 API 자리 (/settings/folders, /settings/exceptions 연동 예정)
-
-    └── pages/
-        ├── mainboard/
-        │   └── MainBoardPage.jsx    # [Page] 메인 대시보드
-        │                            #  - 보호 상태 카드, 감시 시작/중지 버튼, 최근 이벤트 요약 등
-        │
-        ├── logs/
-        │   └── LogsPage.jsx         # [Page] 로그 전체 페이지
-        │                            #  - LogFilterBar + LogTable + LogDetailModal 구성
-        │
-        ├── notifications/
-        │   ├── NotificationPage.jsx       # [Page] 알림 목록 페이지
-        │   ├── NotificationDetailPage.jsx # [Page] 알림 상세 페이지
-        │   └── NotificationStatsPage.jsx  # [Page] 알림 통계 페이지 (차트/요약 지표)
-        │
-        └── settings/
-            ├── SettingHomePage.jsx        # [Page] 설정 메인 (각 설정 섹션으로 이동)
-            ├── SettingFoldersPage.jsx     # [Page] 감시 폴더 관리 (FolderListManager + UseWatchedFolders)
-            ├── SettingExceptionsPage.jsx  # [Page] 예외(화이트리스트) 규칙 관리 (UseExceptions)
-            ├── SettingNotifyPage.jsx      # [Page] 알림 관련 설정 (이메일/팝업 등 UI)
-            ├── SettingUpdatePage.jsx      # [Page] 업데이트/버전 정보 설정
-            ├── SettingResetPage.jsx       # [Page] 초기화/설정 리셋 관련 설정
-            └── SettingFeedbackPage.jsx    # [Page] 피드백/문의 페이지
-.
-└── src/
-    ├── App.js                       # [Root Component] 전체 라우팅 & 페이지 구조 최상위 컴포넌트
-    ├── App.css                      # [Style] App 전역 스타일
-    ├── App.test.js                  # [Test] 기본 테스트 템플릿 (CRA 기본)
-    ├── index.js                     # [Entry] React 진입점, <App />를 root DOM에 마운트
-    ├── index.css                    # [Style] 전역 베이스 스타일 (body, 폰트 등)
-    ├── logo.svg                     # [Asset] 로고 이미지
-    ├── reportWebVitals.js           # [Util] 성능 측정 유틸 (원하면 사용, 안 쓰면 무시)
-    └── setupTests.js                # [Test] 테스트 환경 설정 파일
-
-    ├── layout/
-    │   └── MainLayout.jsx           # [Layout] 공통 레이아웃
-    │                                #  - 좌측 NavSidebar + 상단 HeaderBar + 우측 콘텐츠 영역
-    │                                #  - App.js에서 모든 페이지를 이 레이아웃 안에 렌더링
-
-    ├── styles/
-    │   ├── component.css            # [Style] 공통 컴포넌트 스타일 (버튼, 카드, 테이블 등)
-    │   └── layout.css               # [Style] 레이아웃 스타일 (사이드바, 메인 영역 배치)
-
-    ├── components/
-    │   ├── common/
-    │   │   ├── Button.jsx           # [Component] 공통 버튼 컴포넌트
-    │   │   ├── HeaderBar.jsx        # [Component] 상단 헤더 (페이지 제목, 상태, 액션 버튼 등)
-    │   │   ├── Modal.jsx            # [Component] 공통 모달 (로그/알림 상세 등에 사용)
-    │   │   ├── NavSidebar.jsx       # [Component] 좌측 네비게이션 (대시보드/로그/알림/설정 이동 메뉴)
-    │   │   ├── ProgressBar.jsx      # [Component] 진행률/상태 바 (보호 상태, 스캔 진행률 표현)
-    │   │   └── Table.jsx            # [Component] 공통 테이블 (컬럼 정의 + 데이터 리스트 렌더링)
-    │   │
-    │   ├── folders/
-    │   │   └── FolderListManager.jsx # [Component] 감시 폴더 목록 UI
-    │   │                             #  - 폴더 추가/삭제 버튼 및 목록 표시
-    │   │                             #  - 나중에 UseWatchedFolders + /settings/folders와 연결
-    │   │
-    │   ├── logs/
-    │   │   ├── LogDetailModal.jsx   # [Component] 로그 한 건에 대한 상세 정보 모달
-    │   │   ├── LogFilterBar.jsx     # [Component] 로그 필터/검색 바 (키워드, 위험도 등)
-    │   │   └── LogTable.jsx         # [Component] 로그 리스트 테이블 (LogResponse 배열 표시)
-    │   │
-    │   ├── notifications/
-    │   │   ├── NotificationDetailView.jsx  # [Component] 알림 상세 정보 뷰 (관련 로그/내용 표시)
-    │   │   ├── NotificationItem.jsx        # [Component] 알림 한 건 카드/행
-    │   │   ├── NotificationList.jsx        # [Component] 알림 리스트 (NotificationItem 묶음)
-    │   │   └── NotificationStatusChart.jsx # [Component] 알림 통계 차트 (WARNING/DANGER 개수 등 시각화)
-    │   │
-    │   └── protection/
-    │       ├── ProtectionStatusBadge.jsx   # [Component] 보호 상태 뱃지 ("안전/주의/위험" 아이콘/색상 표시)
-    │       ├── RecentEventsPanel.jsx       # [Component] 최근 이벤트 요약 패널 (최근 로그 몇 개 간단 표시)
-    │       └── ScanControlPanel.jsx        # [Component] 실시간 보호/스캔 제어 패널
-    │                                       #  - 감시 시작/중지 버튼 + 간단 설명 (WatcherApi와 연결 예정)
-
-    ├── hooks/
-    │   ├── UseExceptions.js         # [Hook] 예외(화이트리스트) 규칙 상태 관리
-    │   │                            #  - 현재는 localStorage 기반
-    │   │                            #  - 이후 /settings/exceptions 백엔드 API로 연동 예정
-    │   │
-    │   ├── UseLogs.js              # [Hook] 로그 데이터 관리
-    │   │                            #  - LogsApi.fetchRecentLogs 호출
-    │   │                            #  - logs, loading, error 상태 반환
-    │   │                            #  - LogsPage, MainBoardPage, RecentEventsPanel 등에서 사용
-    │   │
-    │   ├── UseNotifications.js     # [Hook] 알림 데이터 관리
-    │   │                            #  - NotificationsApi(/logs/recent 재사용)를 호출
-    │   │                            #  - 위험/주의 로그를 알림처럼 사용하는 용도
-    │   │
-    │   ├── UseProtectionStatus.js  # [Hook] 보호 상태(대시보드 상단 카드) 관리
-    │   │                            #  - 향후 DashboardApi(/dashboard/summary)와 본격 연동 예정
-    │   │
-    │   └── UseWatchedFolders.js    # [Hook] 감시 폴더 목록 상태 관리
-    │                                #  - 현재는 localStorage 기반
-    │                                #  - 나중에 SettingApi + /settings/folders 연동 예정
-
-    ├── api/
-    │   ├── DashboardApi.js         # [API] /dashboard/summary 호출 (대시보드 요약 정보)
-    │   ├── HttpClient.js           # [API] 공통 HTTP 클라이언트 (BASE_URL, get/post 래퍼)
-    │   ├── LogsApi.js              # [API] /logs/recent 호출 (로그 리스트 조회)
-    │   ├── NotificationsApi.js     # [API] 알림 관련 API (현재는 /logs/recent를 래핑해서 사용)
-    │   ├── SettingApi.js           # [API] 설정 관련 API 자리
-    │   │                            #  - 이후 /settings/folders, /settings/exceptions REST와 연결 예정
-    │   └── WatcherApi.js           # [API] /watcher/start, /watcher/stop 호출 (감시 시작/중지)
-
-    └── pages/
-        ├── logs/
-        │   └── LogsPage.jsx        # [Page] 로그 전체 페이지
-        │                           #  - UseLogs 훅으로 데이터 받아서
-        │                           #  - LogFilterBar + LogTable + LogDetailModal 구성
-        │
-        ├── mainboard/
-        │   └── MainBoardPage.jsx   # [Page] 메인 대시보드 페이지
-        │                           #  - 상단 보호 상태 카드 (ProtectionStatusBadge)
-        │                           #  - 감시 시작/중지 버튼 (WatcherApi 사용)
-        │                           #  - 최근 이벤트 패널(RecentEventsPanel) 등 표시
-        │
-        ├── notifications/
-        │   ├── NotificationDetailPage.jsx # [Page] 알림 상세 페이지 (선택된 알림 정보 출력)
-        │   ├── NotificationPage.jsx       # [Page] 알림 목록 페이지 (NotificationList 사용)
-        │   └── NotificationStatsPage.jsx  # [Page] 알림 통계 페이지 (NotificationStatusChart 등)
-        │
-        └── settings/
-            ├── SettingExceptionsPage.jsx  # [Page] 예외(화이트리스트) 규칙 관리 페이지
-            ├── SettingFeedbackPage.jsx    # [Page] 피드백/문의 페이지
-            ├── SettingFoldersPage.jsx     # [Page] 감시 폴더 관리 페이지 (FolderListManager 사용)
-            ├── SettingHomePage.jsx        # [Page] 설정 메인 (각 설정 페이지로 이동하는 허브)
-            ├── SettingNotifyPage.jsx      # [Page] 알림 관련 설정 페이지 (이메일/팝업 등)
-            ├── SettingResetPage.jsx       # [Page] 초기화/설정 리셋 관련 페이지
-            └── SettingUpdatePage.jsx      # [Page] 업데이트/버전 정보 설정 페이지
+src
+├── api
+│   ├── DashboardApi.js
+│   ├── HttpClient.js
+│   ├── LogsApi.js
+│   ├── NotificationsApi.js
+│   ├── ScanApi.js
+│   ├── SettingApi.js
+│   └── WatcherApi.js
+├── components
+│   ├── common
+│   │   ├── Button.jsx
+│   │   ├── HeaderBar.jsx
+│   │   ├── Modal.jsx
+│   │   ├── NavSidebar.jsx
+│   │   ├── ProgressBar.jsx
+│   │   └── Table.jsx
+│   ├── folders
+│   │   └── FolderListManager.jsx
+│   ├── logs
+│   │   ├── LogDetailModal.jsx
+│   │   ├── LogFilterBar.jsx
+│   │   └── LogTable.jsx
+│   ├── notifications
+│   │   ├── NotificationDetailView.jsx
+│   │   ├── NotificationItem.jsx
+│   │   ├── NotificationList.jsx
+│   │   └── NotificationStatusChart.jsx
+│   └── protection
+│       ├── ProtectionStatusBadge.jsx
+│       ├── RecentEventsPanel.jsx
+│       └── ScanControlPanel.jsx
+├── hooks
+│   ├── UseExceptions.js
+│   ├── UseLogs.js
+│   ├── UseNotifications.js
+│   ├── UseProtectionStatus.js
+│   └── UseWatchedFolders.js
+├── layout
+│   └── MainLayout.jsx
+├── pages
+│   ├── logs
+│   │   └── LogsPage.jsx
+│   ├── mainboard
+│   │   └── MainBoardPage.jsx
+│   ├── notifications
+│   │   ├── NotificationDetailPage.jsx
+│   │   ├── NotificationPage.jsx
+│   │   └── NotificationStatsPage.jsx
+│   └── settings
+│       ├── SettingExceptionsPage.jsx
+│       ├── SettingFeedbackPage.jsx
+│       ├── SettingFoldersPage.jsx
+│       ├── SettingHomePage.jsx
+│       ├── SettingNotifyPage.jsx
+│       ├── SettingResetPage.jsx
+│       └── SettingUpdatePage.jsx
+├── styles
+│   ├── component.css
+│   └── layout.css
+├── App.css
+├── App.js
+├── App.test.js
+├── index.css
+├── index.js
+├── logo.svg
+├── reportWebVitals.js
+└── setupTests.js

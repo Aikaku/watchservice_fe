@@ -1,66 +1,47 @@
 // src/pages/notifications/NotificationStatsPage.jsx
-import React, { useMemo } from 'react';
-import { useNotifications } from '../../hooks/UseNotifications';
+import React, { useEffect, useMemo, useState } from 'react';
+import { fetchAlertStats } from '../../api/NotificationsApi';
+import NotificationStatusChart from '../../components/notifications/NotificationStatusChart';
 
 function NotificationStatsPage() {
-  const { notifications, loading, error, refresh } = useNotifications(200);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const stats = useMemo(() => {
-    const counter = {
-      total: 0,
-      DANGER: 0,
-      WARNING: 0,
-      SAFE: 0,
-      UNKNOWN: 0,
-    };
+  // 간단 통계 (카운터)
+  const [counter, setCounter] = useState({ total: 0, DANGER: 0, WARNING: 0, SAFE: 0, UNKNOWN: 0 });
 
-    notifications.forEach((n) => {
-      counter.total += 1;
-      const label = n.aiLabel || 'UNKNOWN';
-      if (counter[label] !== undefined) {
-        counter[label] += 1;
-      } else {
-        counter.UNKNOWN += 1;
-      }
-    });
+  const load = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetchAlertStats({ level: 'ALL' });
+      setCounter(res?.counter || { total: 0, DANGER: 0, WARNING: 0, SAFE: 0, UNKNOWN: 0 });
+    } catch (e) {
+      setError(e);
+      setCounter({ total: 0, DANGER: 0, WARNING: 0, SAFE: 0, UNKNOWN: 0 });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return counter;
-  }, [notifications]);
+  useEffect(() => {
+    load();
+  }, []);
+
+  const stats = useMemo(() => counter, [counter]);
 
   return (
     <div className="page-container">
       <h1>알림 통계</h1>
 
-      <button className="btn" onClick={refresh} style={{ marginBottom: 12 }}>
+      <button className="btn" onClick={load} style={{ marginBottom: 12 }} disabled={loading}>
         새로고침
       </button>
 
       {loading && <p>불러오는 중...</p>}
-      {error && (
-        <p style={{ color: 'red' }}>
-          통계를 불러오는 중 오류가 발생했습니다: {error.message}
-        </p>
-      )}
+      {error && <p style={{ color: 'red' }}>통계를 불러오는 중 오류: {error.message}</p>}
 
-      {!loading && !error && (
-        <div className="notification-stats">
-          <p>
-            <strong>총 알림 수:</strong> {stats.total}
-          </p>
-          <p>
-            <strong>DANGER:</strong> {stats.DANGER}
-          </p>
-          <p>
-            <strong>WARNING:</strong> {stats.WARNING}
-          </p>
-          <p>
-            <strong>SAFE:</strong> {stats.SAFE}
-          </p>
-          <p>
-            <strong>UNKNOWN:</strong> {stats.UNKNOWN}
-          </p>
-        </div>
-      )}
+      {!loading && !error && <NotificationStatusChart stats={stats} />}
     </div>
   );
 }

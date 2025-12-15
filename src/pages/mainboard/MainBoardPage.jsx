@@ -1,47 +1,47 @@
 // src/pages/mainboard/MainBoardPage.jsx
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { startWatcher, stopWatcher } from '../../api/WatcherApi';
 import { useWatchedFolders } from '../../hooks/UseWatchedFolders';
 import { useLogs } from '../../hooks/UseLogs';
 import { fetchDashboardSummary } from '../../api/DashboardApi';
+import { startScan, pauseScan, fetchScanProgress } from '../../api/ScanApi';
+
+import ProtectionStatusBadge from '../../components/protection/ProtectionStatusBadge';
+import ScanControlPanel from '../../components/protection/ScanControlPanel';
+import RecentEventsPanel from '../../components/protection/RecentEventsPanel';
 
 function MainBoardPage() {
-  // 🔹 대시보드 요약 상태
-  const [protectionStatus, setProtectionStatus] = useState('안전'); // "안전" / "주의" / "위험"
-  const [statusCode, setStatusCode] = useState('SAFE'); // "SAFE" / "WARNING" / "DANGER"
+  // 대시보드 요약
+  const [protectionStatus, setProtectionStatus] = useState('안전');
+  const [statusCode, setStatusCode] = useState('SAFE');
   const [lastEventTime, setLastEventTime] = useState('N/A');
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState(null);
 
-  // 🔹 검사 진행 상태 (지금은 더미, 나중에 Watcher 진행 상황 연동 가능)
-  const [scanProgress, setScanProgress] = useState(0);
+  // 감시/검사 상태
+  const [isWatching, setIsWatching] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [scanProgress, setScanProgress] = useState(0);
+  const [scanId, setScanId] = useState(null);
 
-  // 🔹 감시 대상 폴더: 공통 훅 (localStorage 연동)
-  const {
-    folders,
-    promptAndAddFolder,
-    removeFolder,
-  } = useWatchedFolders();
+  const pollRef = useRef(null);
 
-  // 🔹 최근 탐지 이벤트: 백엔드 로그에서 최근 5건만 가져오기
-  const {
-    logs: recentLogs,
-    loading: logsLoading,
-    error: logsError,
-  } = useLogs(5);
+  // 폴더
+  const { folders, promptAndAddFolder, removeFolder } = useWatchedFolders();
 
-  // ================== 대시보드 요약 불러오기 ==================
+  // 최근 이벤트(5건)
+  const { logs: recentLogs, loading: logsLoading, error: logsError } = useLogs(5);
+
+  // 요약 불러오기
   useEffect(() => {
     const loadSummary = async () => {
       try {
         setSummaryLoading(true);
         setSummaryError(null);
+
         const data = await fetchDashboardSummary();
         if (!data) return;
 
-        // statusLabel: "안전" / "주의" / "위험"
         setProtectionStatus(data.statusLabel || '안전');
         setStatusCode(data.status || 'SAFE');
         setLastEventTime(data.lastEventTime || 'N/A');
@@ -56,189 +56,230 @@ function MainBoardPage() {
     loadSummary();
   }, []);
 
-  // ================== Logs → 최근 이벤트용 가공 ==================
-  const mapLogToEventView = (log) => {
-    // 위험도 레벨 매핑
-    let level = 'info';
-    if (log.aiLabel === 'DANGER') level = 'danger';
-    else if (log.aiLabel === 'WARNING') level = 'warning';
+  // 로그 -> 최근 이벤트 가공
+  const recentEvents = useMemo(() => {
+    const mapLogToEventView = (log) => {
+      let level = 'info';
+      if (log.aiLabel === 'DANGER') level = 'danger';
+      else if (log.aiLabel === 'WARNING') level = 'warning';
 
-    // 메시지 요약
-    const message =
-      log.aiDetail && log.aiDetail.length > 40
-        ? log.aiDetail.slice(0, 40) + '...'
-        : log.aiDetail || log.eventType || '파일 이벤트';
+      const message =
+        log.aiDetail && log.aiDetail.length > 40
+          ? log.aiDetail.slice(0, 40) + '...'
+          : log.aiDetail || log.eventType || '파일 이벤트';
 
-    return {
-      id: log.id,
-      time: log.collectedAt,
-      path: log.path,
-      level,
-      message,
+      return {
+        id: log.id,
+        time: log.collectedAt,
+        path: log.path,
+        level,
+        message,
+      };
     };
-  };
 
-  const recentEvents =
-    recentLogs && recentLogs.length > 0
-      ? recentLogs.map(mapLogToEventView)
-      : [];
+    return Array.isArray(recentLogs) ? recentLogs.map(mapLogToEventView) : [];
+  }, [recentLogs]);
 
-  // ================== 검사 시작 ==================
-  const handleScanNow = async () => {
+  // 감시 시작/중지
+  const handleToggleWatch = async () => {
+    const target = folders[0];
+
+    if (!isWatching) {
+      if (!target?.path) {
+        alert('감시할 폴더가 없습니다.\n먼저 "폴더 추가"에서 경로를 등록해주세요.');
+        return;
+      }
+      try {
+        await startWatcher(target.path);
+        setIsWatching(true);
+      } catch (e) {
+        console.error(e);
+        alert('감시 시작 중 오류가 발생했습니다.\n' + e.message);
+      }
+      return;
+    }
+
     try {
-      const target = folders[0]; // 일단 첫 번째 폴더를 대상으로 사용
-
-      if (!target) {
-        alert(
-          '감시할 폴더가 없습니다.\n먼저 "폴더 추가"에서 경로를 등록해주세요.'
-        );
-        return;
-      }
-
-      if (!target.path) {
-        alert('폴더 경로 정보가 없습니다.');
-        return;
-      }
-
-      setIsScanning(true);
-      setScanProgress(5); // UI용 임시값
-
-      const result = await startWatcher(target.path);
-      console.log('startWatcher result:', result);
-
-      // TODO: 백엔드 응답/상태에 맞춰 진행률 갱신
-      setScanProgress(30);
+      await stopWatcher();
+      setIsWatching(false);
     } catch (e) {
       console.error(e);
-      alert('검사 시작 중 오류가 발생했습니다.\n' + e.message);
+      alert('감시 중지 중 오류가 발생했습니다.\n' + e.message);
+    }
+  };
+
+  // 즉시 검사
+  const handleScanNow = async () => {
+    const paths = folders.map((f) => f.path).filter(Boolean);
+    if (paths.length === 0) {
+      alert('검사할 폴더가 없습니다.\n먼저 "폴더 추가"에서 경로를 등록해주세요.');
+      return;
+    }
+
+    // 이전 스캔 흔적 정리
+    setScanId(null);
+    setIsScanning(true);
+    setScanProgress(0);
+
+    try {
+      // ✅ autoStartWatcher=true로 명시(백엔드 기본도 true지만 명확히)
+      const res = await startScan(paths, true);
+      const id = res?.scanId || res?.id || null;
+
+      if (id) {
+        setScanId(id);
+        // 백엔드가 scan 완료 후 watcher 자동 시작하므로 UI도 감시중 표시(낙관적)
+        setIsWatching(true);
+        return;
+      }
+
+      // scanId 못받으면 실패로 처리
+      throw new Error('scanId not returned');
+    } catch (e) {
+      // 백엔드 scan 미구현/실패 시 watcher로 fallback (옵션)
+      console.warn('startScan failed, fallback startWatcher:', e);
+      try {
+        await startWatcher(paths[0]);
+        setIsWatching(true);
+      } catch (e2) {
+        console.error(e2);
+        alert('즉시 검사 시작 중 오류가 발생했습니다.\n' + e2.message);
+      } finally {
+        setIsScanning(false);
+        setScanProgress(0);
+      }
+    }
+  };
+
+  // 검사 중지(=pause endpoint지만 실질 stop)
+  const handlePause = async () => {
+    try {
+      if (scanId) {
+        await pauseScan(scanId);
+
+        // ✅ pause는 scan job 종료(PAUSED)로 처리하므로 polling도 정리
+        setScanId(null);
+        setScanProgress(0);
+
+        if (pollRef.current) {
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
+      } else {
+        // scanId가 없으면 watcher 중지로 fallback
+        await stopWatcher();
+        setIsWatching(false);
+      }
+    } catch (e) {
+      console.error(e);
+      alert('검사 중지 중 오류가 발생했습니다.\n' + e.message);
     } finally {
       setIsScanning(false);
     }
   };
 
-  // ================== 검사 중지 ==================
-  const handlePause = async () => {
-    try {
-      const result = await stopWatcher();
-      console.log('stopWatcher result:', result);
-      // TODO: 진행률/상태 갱신
-    } catch (e) {
-      console.error(e);
-      alert('검사 중지 중 오류가 발생했습니다.\n' + e.message);
-    }
-  };
+  // scan progress polling (scanId 있을 때만)
+  useEffect(() => {
+    if (!scanId) return;
 
-  // ================== 폴더 추가/삭제 ==================
-  const handleAddFolder = () => {
-    promptAndAddFolder();
-  };
+    if (pollRef.current) clearInterval(pollRef.current);
 
-  const handleRemoveFolder = (id) => {
-    removeFolder(id);
-  };
+    pollRef.current = setInterval(async () => {
+      try {
+        const p = await fetchScanProgress(scanId);
+        const percent = Number(p?.percent ?? 0);
+        if (Number.isFinite(percent)) setScanProgress(percent);
 
-  // ================== 보호 상태 뱃지 색상 ==================
-  const getStatusColor = () => {
-    if (statusCode === 'DANGER') return '#ef4444'; // red
-    if (statusCode === 'WARNING') return '#eab308'; // yellow
-    return '#22c55e'; // green
-  };
+        // DONE 처리
+        if (p?.status === 'DONE' || percent >= 100) {
+          setIsScanning(false);
+          setScanProgress(100);
+          setScanId(null); // ✅ 완료 후 scanId 정리
+
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+          return;
+        }
+
+        // PAUSED/ERROR 처리
+        if (p?.status === 'PAUSED' || p?.status === 'ERROR') {
+          setIsScanning(false);
+          setScanId(null);
+
+          clearInterval(pollRef.current);
+          pollRef.current = null;
+        }
+      } catch (e) {
+        console.warn('fetchScanProgress failed:', e);
+        setIsScanning(false);
+        setScanId(null);
+
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    }, 800);
+
+    return () => {
+      if (pollRef.current) {
+        clearInterval(pollRef.current);
+        pollRef.current = null;
+      }
+    };
+  }, [scanId]);
+
+  // 폴더 추가/삭제
+  const handleAddFolder = () => promptAndAddFolder();
+  const handleRemoveFolder = (id) => removeFolder(id);
 
   return (
     <div className="mainboard-root">
-      {/* 상단 헤더 영역 */}
       <header className="mainboard-header">
         <h1>WatchService Agent</h1>
-        <div className="status-summary">
-          <span className="status-label">보호 상태:</span>
-          <span className="status-value">{protectionStatus}</span>
-          <span className="status-last-scan">
-            최근 이벤트 시각: {lastEventTime}
-          </span>
-          {summaryLoading && (
-            <span className="status-loading">요약 불러오는 중...</span>
-          )}
-          {summaryError && (
-            <span className="status-error">
-              요약 불러오기 실패: {summaryError.message}
-            </span>
-          )}
-        </div>
       </header>
 
       <div className="mainboard-body">
-        {/* 좌측: 보호 상태 + 폴더 */}
         <section className="main-left">
-          {/* 보호 상태 패널 */}
-          <div className="status-panel">
+          <ProtectionStatusBadge
+            protectionStatus={protectionStatus}
+            statusCode={statusCode}
+            lastEventTime={lastEventTime}
+            summaryLoading={summaryLoading}
+            summaryError={summaryError}
+          />
+
+          <div className="status-panel" style={{ marginTop: 12 }}>
             <div className="panel-header">
-              <h2>실시간 보호 상태</h2>
+              <h2>검사 / 감시 제어</h2>
             </div>
 
             <div className="status-body">
-              <div className="status-left">
-                <div
-                  className="status-dot"
-                  style={{
-                    backgroundColor: getStatusColor(),
-                  }}
-                />
-                <span className="status-text">{protectionStatus}</span>
-              </div>
-              <div className="status-right">
-                <div className="scan-controls">
-                  <button
-                    className="btn"
-                    onClick={handleScanNow}
-                    disabled={isScanning}
-                  >
-                    {isScanning ? '검사 중...' : '지금 검사'}
-                  </button>
-
-                  <button className="btn" onClick={handlePause}>
-                    일시 중지
-                  </button>
-                </div>
-
-                <div className="scan-progress">
-                  <div className="scan-progress-bar">
-                    <div
-                      className="scan-progress-fill"
-                      style={{ width: `${scanProgress}%` }}
-                    />
-                  </div>
-                  <div className="scan-progress-text">
-                    진행률: {scanProgress}%
-                  </div>
-                </div>
-              </div>
+              <div className="status-left" />
+              <ScanControlPanel
+                isWatching={isWatching}
+                isScanning={isScanning}
+                scanProgress={scanProgress}
+                onToggleWatch={handleToggleWatch}
+                onScanNow={handleScanNow}
+                onPause={handlePause}
+              />
             </div>
           </div>
 
-          {/* 감시 대상 폴더 패널 */}
           <div className="folder-panel">
             <div className="panel-header">
               <h2>감시 대상 폴더</h2>
             </div>
+
             <div className="folder-list">
               {folders.map((f) => (
                 <div key={f.id} className="folder-item">
                   <div className="folder-name">
                     {f.name}
-                    <div
-                      style={{
-                        fontSize: '11px',
-                        color: '#9ca3af',
-                        marginTop: '2px',
-                      }}
-                    >
+                    <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
                       {f.path}
                     </div>
                   </div>
-                  <button
-                    className="btn-icon"
-                    onClick={() => handleRemoveFolder(f.id)}
-                  >
+                  <button className="btn-icon" onClick={() => handleRemoveFolder(f.id)}>
                     삭제
                   </button>
                 </div>
@@ -252,65 +293,15 @@ function MainBoardPage() {
                 </p>
               )}
             </div>
+
             <button className="btn btn-outline" onClick={handleAddFolder}>
               폴더 추가
             </button>
           </div>
         </section>
 
-        {/* 우측: 최근 이벤트 패널 */}
         <section className="main-right">
-          <div className="recent-events-panel">
-            <div className="panel-header">
-              <h2>최근 탐지 이벤트</h2>
-            </div>
-
-            <div className="recent-events-list">
-              {logsLoading && <p>최근 이벤트를 불러오는 중...</p>}
-              {logsError && (
-                <p style={{ color: 'red' }}>
-                  최근 이벤트를 불러오는 중 오류가 발생했습니다:{' '}
-                  {logsError.message}
-                </p>
-              )}
-
-              {!logsLoading && !logsError && recentEvents.length === 0 && (
-                <p style={{ fontSize: 13, color: '#9ca3af' }}>
-                  아직 탐지된 이벤트가 없습니다.
-                </p>
-              )}
-
-              {!logsLoading &&
-                !logsError &&
-                recentEvents.map((ev) => (
-                  <div key={ev.id} className="event-item">
-                    <div className="event-main">
-                      <span className="event-time">{ev.time}</span>
-                      <span className="event-message">{ev.message}</span>
-                    </div>
-                    <div className="event-sub">
-                      <span className="event-path">{ev.path}</span>
-                      <span
-                        className={
-                          'event-level ' +
-                          (ev.level === 'danger'
-                            ? 'event-level-danger'
-                            : ev.level === 'warning'
-                            ? 'event-level-warning'
-                            : 'event-level-info')
-                        }
-                      >
-                        {ev.level === 'danger'
-                          ? '위험'
-                          : ev.level === 'warning'
-                          ? '주의'
-                          : '정보'}
-                      </span>
-                    </div>
-                  </div>
-                ))}
-            </div>
-          </div>
+          <RecentEventsPanel events={recentEvents} loading={logsLoading} error={logsError} />
         </section>
       </div>
     </div>

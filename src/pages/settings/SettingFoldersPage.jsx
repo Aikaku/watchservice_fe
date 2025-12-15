@@ -1,5 +1,4 @@
 // src/pages/settings/SettingFoldersPage.jsx
-
 import React from 'react';
 import { useWatchedFolders } from '../../hooks/UseWatchedFolders';
 import FolderListManager from '../../components/folders/FolderListManager';
@@ -7,6 +6,9 @@ import FolderListManager from '../../components/folders/FolderListManager';
 function SettingFoldersPage() {
   const {
     folders,
+    loading,
+    error,
+    refresh,
     promptAndAddFolder,
     removeFolder,
   } = useWatchedFolders();
@@ -19,8 +21,20 @@ function SettingFoldersPage() {
         메인 보드에서 사용하는 폴더 목록과 동일하게 동기화됩니다.
       </p>
 
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+        <button className="btn" onClick={refresh} disabled={loading}>
+          새로고침
+        </button>
+        {loading && <span style={{ fontSize: 13, color: '#9ca3af' }}>불러오는 중...</span>}
+        {error && (
+          <span style={{ fontSize: 13, color: 'red' }}>
+            서버 연동 오류: {error.message}
+          </span>
+        )}
+      </div>
+
       <FolderListManager
-        folders={folders}
+        folders={folders || []}
         onAddFolder={promptAndAddFolder}
         onRemoveFolder={removeFolder}
       />

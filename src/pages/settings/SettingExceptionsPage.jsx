@@ -1,16 +1,15 @@
 // src/pages/settings/SettingExceptionsPage.jsx
-
 import React, { useState } from 'react';
 import { useExceptions } from '../../hooks/UseExceptions';
 
 function SettingExceptionsPage() {
-  const { exceptions, addException, removeException } = useExceptions();
+  const { exceptions, loading, error, refresh, addException, removeException } = useExceptions();
 
   const [type, setType] = useState('PATH');
   const [pattern, setPattern] = useState('');
   const [memo, setMemo] = useState('');
 
-  const handleAdd = (e) => {
+  const handleAdd = async (e) => {
     e.preventDefault();
 
     if (!pattern.trim()) {
@@ -18,7 +17,7 @@ function SettingExceptionsPage() {
       return;
     }
 
-    addException(type, pattern.trim(), memo.trim());
+    await addException({ type, pattern: pattern.trim(), memo: memo.trim() });
     setPattern('');
     setMemo('');
   };
@@ -33,8 +32,19 @@ function SettingExceptionsPage() {
       <h1>예외(화이트리스트) 설정</h1>
       <p style={{ fontSize: 14, color: '#9ca3af', marginBottom: 16 }}>
         감시 대상에서 제외할 파일/폴더/확장자를 등록합니다.
-        현재는 에이전트 내부 UI에서만 활용되며, 나중에 탐지 엔진과 연동할 수 있습니다.
       </p>
+
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 12 }}>
+        <button className="btn" onClick={refresh} disabled={loading}>
+          새로고침
+        </button>
+        {loading && <span style={{ fontSize: 13, color: '#9ca3af' }}>불러오는 중...</span>}
+        {error && (
+          <span style={{ fontSize: 13, color: 'red' }}>
+            서버 연동 오류: {error.message}
+          </span>
+        )}
+      </div>
 
       {/* 예외 추가 폼 */}
       <form
@@ -65,11 +75,7 @@ function SettingExceptionsPage() {
             type="text"
             value={pattern}
             onChange={(e) => setPattern(e.target.value)}
-            placeholder={
-              type === 'PATH'
-                ? '/Users/~/Downloads/temp'
-                : '.log, .tmp 처럼 확장자'
-            }
+            placeholder={type === 'PATH' ? '/Users/~/Downloads/temp' : '.log, .tmp 처럼 확장자'}
             style={{ width: '100%', marginTop: 4 }}
           />
         </label>
@@ -93,6 +99,7 @@ function SettingExceptionsPage() {
       {/* 예외 목록 */}
       <div className="exception-list-panel">
         <h2 style={{ fontSize: 16, marginBottom: 8 }}>등록된 예외 규칙</h2>
+
         {exceptions.length === 0 && (
           <p style={{ fontSize: 13, color: '#9ca3af' }}>
             아직 등록된 예외 규칙이 없습니다.

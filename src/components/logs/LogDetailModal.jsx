@@ -1,6 +1,7 @@
+// src/components/logs/LogDetailModal.jsx
 import React from 'react';
 
-function LogDetailModal({ log, onClose }) {
+function LogDetailModal({ log, onClose, onDelete }) {
   if (!log) return null;
 
   return (
@@ -14,18 +15,21 @@ function LogDetailModal({ log, onClose }) {
           <p><strong>파일 경로:</strong> {log.path}</p>
           <p><strong>파일 존재 여부:</strong> {log.exists ? '존재' : '삭제됨'}</p>
           <p><strong>파일 크기:</strong> {log.size} bytes</p>
-          <p><strong>마지막 수정 시간:</strong> {log.lastModifiedTime}</p>
-          <p><strong>SHA-256 해시:</strong> {log.hash || '-'}</p>
-          <p><strong>엔트로피:</strong> {log.entropy != null ? log.entropy : '-'}</p>
-          <p><strong>AI 레이블:</strong> {log.aiLabel || '-'}</p>
-          <p><strong>AI 점수:</strong> {log.aiScore != null ? log.aiScore : '-'}</p>
+          <p><strong>엔트로피:</strong> {log.entropy}</p>
+
+          <p><strong>AI 판정:</strong> {log.aiLabel || '-'}</p>
+          <p><strong>AI 점수:</strong> {log.aiScore ?? '-'}</p>
+
           <p><strong>AI 상세:</strong></p>
-          <pre className="log-ai-detail">
+          <pre style={{ background: '#111827', color: '#e5e7eb', padding: 12, borderRadius: 8, maxHeight: 240, overflow: 'auto' }}>
             {log.aiDetail || '(상세 내용 없음)'}
           </pre>
         </div>
 
-        <div className="modal-actions">
+        <div className="modal-actions" style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <button className="btn" onClick={onDelete}>
+            삭제
+          </button>
           <button className="btn" onClick={onClose}>
             닫기
           </button>

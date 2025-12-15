@@ -1,5 +1,4 @@
 // src/components/folders/FolderListManager.jsx
-
 import React from 'react';
 
 function FolderListManager({ folders, onAddFolder, onRemoveFolder }) {
@@ -10,30 +9,25 @@ function FolderListManager({ folders, onAddFolder, onRemoveFolder }) {
       </div>
 
       <div className="folder-list">
-        {folders.map((f) => (
+        {(folders || []).map((f) => (
           <div key={f.id} className="folder-item">
             <div className="folder-name">
               {f.name}
-              <div
-                style={{
-                  fontSize: '11px',
-                  color: '#9ca3af',
-                  marginTop: '2px',
-                }}
-              >
+              <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>
                 {f.path}
               </div>
             </div>
+
             <button
               className="btn-icon"
-              onClick={() => onRemoveFolder && onRemoveFolder(f.id)}
+              onClick={() => onRemoveFolder?.(f.id)}
             >
               삭제
             </button>
           </div>
         ))}
 
-        {folders.length === 0 && (
+        {(folders || []).length === 0 && (
           <div style={{ fontSize: '13px', color: '#9ca3af' }}>
             아직 등록된 감시 폴더가 없습니다. 아래 버튼으로 추가해 주세요.
           </div>
