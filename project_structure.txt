@@ -1,5 +1,5 @@
-src
-├── api
+src/
+├── api/
 │   ├── DashboardApi.js
 │   ├── HttpClient.js
 │   ├── LogsApi.js
@@ -7,47 +7,45 @@ src
 │   ├── ScanApi.js
 │   ├── SettingApi.js
 │   └── WatcherApi.js
-├── components
-│   ├── common
-│   │   ├── Button.jsx
-│   │   ├── HeaderBar.jsx
-│   │   ├── Modal.jsx
+├── components/
+│   ├── common/
+│   │   ├── Button.jsx            (0바이트/빈 파일)
+│   │   ├── HeaderBar.jsx         (0바이트/빈 파일)
+│   │   ├── Modal.jsx             (0바이트/빈 파일)
 │   │   ├── NavSidebar.jsx
-│   │   ├── ProgressBar.jsx
-│   │   └── Table.jsx
-│   ├── folders
+│   │   ├── ProgressBar.jsx       (0바이트/빈 파일)
+│   │   └── Table.jsx             (0바이트/빈 파일)
+│   ├── folders/
 │   │   └── FolderListManager.jsx
-│   ├── logs
+│   ├── logs/
 │   │   ├── LogDetailModal.jsx
 │   │   ├── LogFilterBar.jsx
 │   │   └── LogTable.jsx
-│   ├── notifications
+│   ├── notifications/
 │   │   ├── NotificationDetailView.jsx
 │   │   ├── NotificationItem.jsx
 │   │   ├── NotificationList.jsx
 │   │   └── NotificationStatusChart.jsx
-│   └── protection
+│   └── protection/
 │       ├── ProtectionStatusBadge.jsx
 │       ├── RecentEventsPanel.jsx
 │       └── ScanControlPanel.jsx
-├── hooks
+├── hooks/
 │   ├── UseExceptions.js
 │   ├── UseLogs.js
 │   ├── UseNotifications.js
 │   ├── UseProtectionStatus.js
 │   └── UseWatchedFolders.js
-├── layout
+├── layout/
 │   └── MainLayout.jsx
-├── pages
-│   ├── logs
-│   │   └── LogsPage.jsx
-│   ├── mainboard
-│   │   └── MainBoardPage.jsx
-│   ├── notifications
+├── pages/
+│   ├── logs/LogsPage.jsx
+│   ├── mainboard/MainBoardPage.jsx
+│   ├── notifications/
 │   │   ├── NotificationDetailPage.jsx
 │   │   ├── NotificationPage.jsx
 │   │   └── NotificationStatsPage.jsx
-│   └── settings
+│   └── settings/
 │       ├── SettingExceptionsPage.jsx
 │       ├── SettingFeedbackPage.jsx
 │       ├── SettingFoldersPage.jsx
@@ -55,7 +53,7 @@ src
 │       ├── SettingNotifyPage.jsx
 │       ├── SettingResetPage.jsx
 │       └── SettingUpdatePage.jsx
-├── styles
+├── styles/
 │   ├── component.css
 │   └── layout.css
 ├── App.css
