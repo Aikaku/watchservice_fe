@@ -2,10 +2,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   fetchWatchedFolders,
+  pickFolderPath,
   createWatchedFolder,
   deleteWatchedFolder,
-  pickFolderPath, // ✅ 여기 중요 (네 SettingApi.js에 있는 이름)
 } from '../api/SettingApi';
+
+function guessNameFromPath(path) {
+  if (!path) return '폴더';
+  const parts = String(path).split(/[/\\]+/).filter(Boolean);
+  return parts.length ? parts[parts.length - 1] : '폴더';
+}
 
 export function useWatchedFolders() {
   const [folders, setFolders] = useState([]);
@@ -16,21 +22,18 @@ export function useWatchedFolders() {
     try {
       setLoading(true);
       setError(null);
-
       const data = await fetchWatchedFolders();
       const list = Array.isArray(data) ? data : (data?.items ?? []);
 
       setFolders(
         list.map((it) => ({
           id: it.id ?? it.folderId ?? it.path,
-          name: it.name ?? it.folderName ?? it.path ?? '폴더',
+          name: it.name ?? it.folderName ?? guessNameFromPath(it.path),
           path: it.path,
-          createdAt: it.createdAt,
         }))
       );
     } catch (e) {
       setError(e);
-      setFolders([]);
     } finally {
       setLoading(false);
     }
@@ -38,50 +41,41 @@ export function useWatchedFolders() {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh]); // ✅ eslint 경고 해결 포인트
 
+  // ✅ 기존 페이지가 onAddFolder로 쓰는 이름 유지(호환)
   const promptAndAddFolder = useCallback(async () => {
     try {
-      // ✅ 클릭이 먹는지부터 확인용 (무반응이면 이 로그도 안 찍힘)
-      console.log('[useWatchedFolders] add folder clicked');
+      // 1) 백엔드 폴더 선택 다이얼로그 호출
+      const picked = await pickFolderPath();
 
-      setLoading(true);
-      setError(null);
+      // 백엔드가 {path:"..."} 로 주든, 문자열로 주든 둘 다 처리
+      const path = typeof picked === 'string' ? picked : (picked?.path ?? '');
+      if (!path) return; // 사용자가 취소했으면 그냥 종료
 
-      // 1) 백엔드에서 폴더 선택 다이얼로그 띄우고 path 받기
-      const picked = await pickFolderPath(); // ✅ GET /settings/folders/pick
-      const path = (typeof picked === 'string' ? picked : picked?.path) || '';
+      // 2) 표시 이름(선택)
+      const defaultName = guessNameFromPath(path);
+      const name = window.prompt('폴더 이름(표시용)을 입력하세요', defaultName) || defaultName;
 
-      if (!path.trim()) return; // 사용자가 취소한 케이스
-
-      // 2) 등록 (name 비워도 백엔드가 path로 채움)
-      await createWatchedFolder({ name: '', path: path.trim() });
+      await createWatchedFolder({ name, path });
       await refresh();
     } catch (e) {
-      console.error('[useWatchedFolders] add folder failed', e);
-      setError(e);
-      alert(`폴더 추가 실패: ${e.message}`);
-    } finally {
-      setLoading(false);
+      // 폴더피커 미구현/오프라인이면 fallback
+      const path = window.prompt('감시 폴더 경로를 입력하세요');
+      if (!path) return;
+
+      const defaultName = guessNameFromPath(path);
+      const name = window.prompt('폴더 이름(표시용)을 입력하세요', defaultName) || defaultName;
+
+      await createWatchedFolder({ name, path });
+      await refresh();
     }
   }, [refresh]);
 
-  const removeFolder = useCallback(
-    async (id) => {
-      try {
-        setLoading(true);
-        setError(null);
-        await deleteWatchedFolder(id);
-        await refresh();
-      } catch (e) {
-        setError(e);
-        alert(`폴더 삭제 실패: ${e.message}`);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [refresh]
-  );
+  const removeFolder = useCallback(async (id) => {
+    await deleteWatchedFolder(id);
+    await refresh();
+  }, [refresh]);
 
   return { folders, loading, error, refresh, promptAndAddFolder, removeFolder };
 }
