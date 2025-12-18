@@ -1,16 +1,18 @@
-// src/components/logs/LogFilterBar.jsx
+/**
+ * 파일 이름 : LogFilterBar.jsx
+ * 기능 : 로그 필터 바 컴포넌트. 키워드 검색, 위험도 필터, 날짜 범위, 정렬 옵션을 제공한다.
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 import React from 'react';
 
 /**
- * LogFilterBar (명세형)
- * - keyword: 키워드(파일경로/이벤트/AI상세)
- * - riskFilter: ALL | DANGER | WARNING | SAFE | UNKNOWN
- * - from/to: YYYY-MM-DD (기간)
- * - sort: "collectedAt,desc" 같은 문자열
- *
- * onSearch: 검색 적용(서버 /logs 구현되면 서버필터로 동작)
- * onReset: 필터 초기화(명세 14번)
- * onRefresh: 새로고침
+ * 함수 이름 : LogFilterBar
+ * 기능 : 로그 필터 바 컴포넌트.
+ * 매개변수 : keyword - 검색 키워드, setKeyword - 키워드 설정 함수, riskFilter - 위험도 필터 (ALL|DANGER|WARNING|SAFE|UNKNOWN), setRiskFilter - 위험도 필터 설정 함수, from - 시작 날짜 (YYYY-MM-DD), setFrom - 시작 날짜 설정 함수, to - 종료 날짜 (YYYY-MM-DD), setTo - 종료 날짜 설정 함수, sort - 정렬 기준, setSort - 정렬 기준 설정 함수, onSearch - 검색 핸들러, onReset - 필터 초기화 핸들러, onRefresh - 새로고침 핸들러, refreshLogs - 새로고침 함수 (하위 호환)
+ * 반환값 : JSX.Element - 로그 필터 바 컴포넌트
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
  */
 function LogFilterBar({
   keyword,

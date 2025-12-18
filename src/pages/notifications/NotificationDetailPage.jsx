@@ -1,8 +1,21 @@
-// src/pages/notifications/NotificationDetailPage.jsx
+/**
+ * 파일 이름 : NotificationDetailPage.jsx
+ * 기능 : 알림 상세 페이지. 알림의 상세 정보를 표시한다.
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { fetchAlertDetail } from '../../api/NotificationsApi';
 
+/**
+ * 함수 이름 : NotificationDetailPage
+ * 기능 : 알림 상세 페이지 컴포넌트.
+ * 매개변수 : 없음
+ * 반환값 : JSX.Element - 알림 상세 페이지 컴포넌트
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 function NotificationDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();

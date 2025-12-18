@@ -1,8 +1,21 @@
-// src/pages/notifications/NotificationPage.jsx
+/**
+ * 파일 이름 : NotificationPage.jsx
+ * 기능 : 알림 히스토리 페이지. 알림 목록 조회, 필터링, 상세 보기 기능을 제공한다.
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 import React, { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '../../hooks/UseNotifications';
 
+/**
+ * 함수 이름 : NotificationPage
+ * 기능 : 알림 히스토리 페이지 컴포넌트. 알림 목록을 표시하고 필터링 및 상세 보기를 지원한다.
+ * 매개변수 : 없음
+ * 반환값 : JSX.Element - 알림 히스토리 페이지 컴포넌트
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 function NotificationPage() {
   const navigate = useNavigate();
 
@@ -52,6 +65,9 @@ function NotificationPage() {
     <div className="page-container">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h1>알림 히스토리</h1>
+        <p style={{ fontSize: 13, color: '#9ca3af', marginLeft: 12 }}>
+          AI 분석이 완료된 이벤트 중에서 위험도(SAFE / WARNING / DANGER)가 매겨진 결과를 시간순으로 보여줍니다.
+        </p>
         <button className="btn" onClick={() => navigate('/notifications/stats')}>
           통계 보기
         </button>

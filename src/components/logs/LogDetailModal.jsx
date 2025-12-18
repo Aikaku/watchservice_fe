@@ -1,6 +1,19 @@
-// src/components/logs/LogDetailModal.jsx
+/**
+ * 파일 이름 : LogDetailModal.jsx
+ * 기능 : 로그 상세 정보를 모달로 표시하는 컴포넌트. 삭제 기능을 포함한다.
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 import React from 'react';
 
+/**
+ * 함수 이름 : LogDetailModal
+ * 기능 : 로그 상세 정보를 모달로 표시한다.
+ * 매개변수 : log - 로그 객체, onClose - 닫기 핸들러, onDelete - 삭제 핸들러
+ * 반환값 : JSX.Element - 로그 상세 모달 컴포넌트
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 function LogDetailModal({ log, onClose, onDelete }) {
   if (!log) return null;
 
@@ -14,8 +27,11 @@ function LogDetailModal({ log, onClose, onDelete }) {
           <p><strong>이벤트 타입:</strong> {log.eventType}</p>
           <p><strong>파일 경로:</strong> {log.path}</p>
           <p><strong>파일 존재 여부:</strong> {log.exists ? '존재' : '삭제됨'}</p>
-          <p><strong>파일 크기:</strong> {log.size} bytes</p>
-          <p><strong>엔트로피:</strong> {log.entropy}</p>
+          <p><strong>확장자 변화:</strong> {log.extBefore || '-'} → {log.extAfter || '-'}</p>
+          <p><strong>파일 크기:</strong> {log.sizeBefore != null ? `${log.sizeBefore} → ${log.sizeAfter ?? log.size}` : log.size} bytes</p>
+          <p><strong>크기 변화량:</strong> {log.sizeDiff != null ? `${log.sizeDiff >= 0 ? '+' : ''}${log.sizeDiff}` : '-'}</p>
+          <p><strong>엔트로피:</strong> {log.entropyBefore != null ? `${log.entropyBefore} → ${log.entropyAfter ?? log.entropy ?? '-'}` : (log.entropy ?? '-')}</p>
+          <p><strong>엔트로피 변화량:</strong> {log.entropyDiff != null ? `${log.entropyDiff >= 0 ? '+' : ''}${log.entropyDiff}` : '-'}</p>
 
           <p><strong>AI 판정:</strong> {log.aiLabel || '-'}</p>
           <p><strong>AI 점수:</strong> {log.aiScore ?? '-'}</p>

@@ -9,12 +9,12 @@ src/
 │   └── WatcherApi.js
 ├── components/
 │   ├── common/
-│   │   ├── Button.jsx            (0바이트/빈 파일)
-│   │   ├── HeaderBar.jsx         (0바이트/빈 파일)
-│   │   ├── Modal.jsx             (0바이트/빈 파일)
+│   │   ├── Button.jsx
+│   │   ├── HeaderBar.jsx
+│   │   ├── Modal.jsx
 │   │   ├── NavSidebar.jsx
-│   │   ├── ProgressBar.jsx       (0바이트/빈 파일)
-│   │   └── Table.jsx             (0바이트/빈 파일)
+│   │   ├── ProgressBar.jsx
+│   │   └── Table.jsx
 │   ├── folders/
 │   │   └── FolderListManager.jsx
 │   ├── logs/
@@ -39,8 +39,10 @@ src/
 ├── layout/
 │   └── MainLayout.jsx
 ├── pages/
-│   ├── logs/LogsPage.jsx
-│   ├── mainboard/MainBoardPage.jsx
+│   ├── logs/
+│   │   └── LogsPage.jsx
+│   ├── mainboard/
+│   │   └── MainBoardPage.jsx
 │   ├── notifications/
 │   │   ├── NotificationDetailPage.jsx
 │   │   ├── NotificationPage.jsx

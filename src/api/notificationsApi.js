@@ -1,17 +1,19 @@
-// src/api/NotificationsApi.js
+/**
+ * 파일 이름 : NotificationsApi.js
+ * 기능 : 알림(위험 이벤트) 조회 및 통계 API 함수를 제공한다. 프론트엔드는 0-based 페이지를 사용하고 백엔드는 1-based를 사용하므로 변환을 수행한다.
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 import { get } from './HttpClient';
 
 /**
- * Backend (정식):
- *  - GET  /alerts?page=1&size=50&from=&to=&level=&keyword=&sort=
- *  - GET  /alerts/{id}
- *  - GET  /alerts/stats?range=daily|weekly&from=&to=
- *
- * Front policy:
- *  - 프론트 page는 0-based 유지
- *  - 백엔드 page는 1-based이므로 요청 시 page+1, 응답은 page-1로 되돌림
+ * 함수 이름 : toQuery
+ * 기능 : 객체를 쿼리스트링으로 변환한다.
+ * 매개변수 : params - 쿼리 파라미터 객체
+ * 반환값 : string - 쿼리스트링
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
  */
-
 function toQuery(params = {}) {
   const sp = new URLSearchParams();
   Object.entries(params).forEach(([k, v]) => {
@@ -24,6 +26,14 @@ function toQuery(params = {}) {
   return qs ? `?${qs}` : '';
 }
 
+/**
+ * 함수 이름 : normalizeLevel
+ * 기능 : 위험도 레벨을 정규화한다. ALL이나 빈값이면 빈 문자열을 반환한다.
+ * 매개변수 : level - 위험도 레벨 문자열
+ * 반환값 : string - 정규화된 레벨 (DANGER|WARNING|SAFE 또는 빈 문자열)
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 function normalizeLevel(level) {
   const v = String(level || '').trim().toUpperCase();
   if (v === 'DANGER' || v === 'WARNING' || v === 'SAFE') return v;
@@ -31,15 +41,12 @@ function normalizeLevel(level) {
 }
 
 /**
- * fetchAlerts
- * @param {Object} params
- * @param {number} params.page 0-based
- * @param {number} params.size
- * @param {string} params.keyword
- * @param {string} params.level ALL | DANGER | WARNING | SAFE
- * @param {string} params.from YYYY-MM-DD
- * @param {string} params.to YYYY-MM-DD
- * @param {string} params.sort collectedAt,desc 등
+ * 함수 이름 : fetchAlerts
+ * 기능 : 페이지네이션, 필터링, 정렬을 지원하는 알림 목록을 조회한다. 프론트엔드의 0-based 페이지를 백엔드의 1-based로 변환한다.
+ * 매개변수 : params - 쿼리 파라미터 객체 (page: 0-based, size, keyword, level: ALL|DANGER|WARNING|SAFE, from: YYYY-MM-DD, to: YYYY-MM-DD, sort)
+ * 반환값 : Promise - 페이지네이션된 알림 목록 (page는 0-based로 변환됨)
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
  */
 export async function fetchAlerts({
   page = 0,
@@ -83,17 +90,25 @@ export async function fetchAlerts({
   };
 }
 
-/** 알림 상세 */
+/**
+ * 함수 이름 : fetchAlertDetail
+ * 기능 : ID로 단일 알림의 상세 정보를 조회한다.
+ * 매개변수 : id - 알림 ID
+ * 반환값 : Promise - 알림 상세 정보
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
+ */
 export function fetchAlertDetail(id) {
   return get(`/alerts/${id}`);
 }
 
 /**
- * 알림 통계 (daily|weekly)
- * 백엔드: {range, from, to, series:[{date, warning, danger}]}
- *
- * ✅ 기존 프론트 UI(카운터형)를 유지하려고,
- *    series를 합산해서 counter도 같이 만들어서 반환해줌.
+ * 함수 이름 : fetchAlertStats
+ * 기능 : 알림 통계를 일별 또는 주별로 조회한다. series를 합산하여 counter도 함께 반환한다.
+ * 매개변수 : params - 통계 파라미터 객체 (range: daily|weekly, from: YYYY-MM-DD, to: YYYY-MM-DD)
+ * 반환값 : Promise - 통계 데이터 (range, from, to, series, counter 포함)
+ * 작성 날짜 : 2025/12/17
+ * 작성자 : 시스템
  */
 export async function fetchAlertStats({
   range = 'daily', // daily | weekly
