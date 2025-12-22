@@ -63,11 +63,13 @@ function NotificationPage() {
 
   return (
     <div className="page-container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>알림 히스토리</h1>
-        <p style={{ fontSize: 13, color: '#9ca3af', marginLeft: 12 }}>
-          AI 분석이 완료된 이벤트 중에서 위험도(SAFE / WARNING / DANGER)가 매겨진 결과를 시간순으로 보여줍니다.
-        </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+        <div>
+          <h1>알림 히스토리</h1>
+          <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4 }}>
+            최근 3초 윈도우 동안의 행동 패턴을 AI가 분석한 결과를 요약 경보로 제공합니다. 각 알림은 윈도우 단위이며, 영향 받은 파일 경로 목록을 포함합니다.
+          </p>
+        </div>
         <button className="btn" onClick={() => navigate('/notifications/stats')}>
           통계 보기
         </button>
@@ -105,19 +107,17 @@ function NotificationPage() {
 
         <input
           type="text"
-          placeholder="경로/이벤트/AI 상세 검색"
+          placeholder="경로/AI 상세/패밀리 검색"
           value={keyword || ''}
           onChange={(e) => setKeyword(e.target.value)}
           style={{ minWidth: 260 }}
         />
 
         <select value={sort} onChange={(e) => setSort(e.target.value)}>
-          <option value="collectedAt,desc">시간(최신순)</option>
-          <option value="collectedAt,asc">시간(오래된순)</option>
+          <option value="createdAt,desc">시간(최신순)</option>
+          <option value="createdAt,asc">시간(오래된순)</option>
           <option value="aiScore,desc">AI 점수(높은순)</option>
           <option value="aiScore,asc">AI 점수(낮은순)</option>
-          <option value="entropy,desc">엔트로피(높은순)</option>
-          <option value="entropy,asc">엔트로피(낮은순)</option>
         </select>
 
         <button className="btn" onClick={handleSearch}>
@@ -156,16 +156,24 @@ function NotificationPage() {
             >
               <div className="notification-item-main">
                 <span className="notification-title">
-                  [{item.aiLabel || 'UNKNOWN'}] {item.eventType}
+                  [{item.aiLabel || 'UNKNOWN'}] {item.topFamily || '분류 중'}
                 </span>
-                <span className="notification-time">{item.collectedAt}</span>
+                <span className="notification-time">{item.createdAt}</span>
               </div>
 
               <div className="notification-item-sub">
-                <span className="notification-path">{item.path}</span>
-                {item.aiDetail && (
-                  <span className="notification-detail-preview">
-                    {item.aiDetail.length > 60 ? item.aiDetail.slice(0, 60) + '...' : item.aiDetail}
+                <span className="notification-path">
+                  영향 받은 파일: {item.affectedFilesCount}개
+                  {item.affectedPaths && item.affectedPaths.length > 0 && (
+                    <span style={{ marginLeft: 8, fontSize: 12, color: '#9ca3af' }}>
+                      ({item.affectedPaths.slice(0, 3).join(', ')}
+                      {item.affectedPaths.length > 3 ? '...' : ''})
+                    </span>
+                  )}
+                </span>
+                {item.aiScore != null && (
+                  <span className="notification-detail-preview" style={{ marginLeft: 8 }}>
+                    AI 점수: {(item.aiScore * 100).toFixed(1)}%
                   </span>
                 )}
               </div>

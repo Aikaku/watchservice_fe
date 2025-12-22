@@ -41,7 +41,7 @@ function LogTable({ logs, onRowClick, selectedIds, onToggleSelect, onToggleSelec
             <th>경로</th>
             <th>크기 변화</th>
             <th>엔트로피 변화</th>
-            <th>AI</th>
+            {/* <th>AI</th> */}
           </tr>
         </thead>
 
@@ -69,7 +69,7 @@ function LogTable({ logs, onRowClick, selectedIds, onToggleSelect, onToggleSelec
                 {log.entropyBefore != null ? `${log.entropyBefore} → ${log.entropyAfter ?? log.entropy ?? '-'}` : (log.entropy ?? '-')}
                 {log.entropyDiff != null ? ` (${log.entropyDiff >= 0 ? '+' : ''}${log.entropyDiff.toFixed(4)})` : ''}
               </td>
-              <td>{log.aiLabel || '-'}</td>
+              {/* <td>{log.aiLabel || '-'}</td> */}
             </tr>
           ))}
         </tbody>

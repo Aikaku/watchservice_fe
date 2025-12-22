@@ -30,7 +30,7 @@ export function useNotifications(initial = 100) {
   const [level, setLevel] = useState(initialObj.level ?? 'ALL'); // ALL | DANGER | WARNING | SAFE
   const [from, setFrom] = useState(initialObj.from ?? '');
   const [to, setTo] = useState(initialObj.to ?? '');
-  const [sort, setSort] = useState(initialObj.sort ?? 'collectedAt,desc');
+  const [sort, setSort] = useState(initialObj.sort ?? 'createdAt,desc');
 
   const [items, setItems] = useState([]);
   const [total, setTotal] = useState(0);

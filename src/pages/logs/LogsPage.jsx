@@ -240,10 +240,12 @@ function LogsPage() {
 
   return (
     <div className="page-container">
-      <h1>로그 관리</h1>
-      <p style={{ fontSize: 13, color: '#9ca3af', marginBottom: 8 }}>
-        감시 기능이 수집한 원시 파일 이벤트와, 그로 인해 파일 크기/엔트로피/확장자가 어떻게 바뀌었는지(AI 분석 전 단계)를 시간순으로 보여줍니다.
-      </p>
+      <div>
+        <h1>로그 관리</h1>
+        <p style={{ fontSize: 13, color: '#9ca3af', marginTop: 4, marginBottom: 8 }}>
+          감시 기능이 수집한 원시 파일 이벤트와, 그로 인해 파일 크기/엔트로피/확장자가 어떻게 바뀌었는지(AI 분석 전 단계)를 시간순으로 보여줍니다.
+        </p>
+      </div>
 
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12, flexWrap: 'wrap' }}>
         <label>

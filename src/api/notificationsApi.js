@@ -1,6 +1,6 @@
 /**
  * 파일 이름 : NotificationsApi.js
- * 기능 : 알림(위험 이벤트) 조회 및 통계 API 함수를 제공한다. 프론트엔드는 0-based 페이지를 사용하고 백엔드는 1-based를 사용하므로 변환을 수행한다.
+ * 기능 : 알림(윈도우 단위 AI 분석 결과) 조회 API 함수를 제공한다. 프론트엔드는 0-based 페이지를 사용하고 백엔드는 1-based를 사용하므로 변환을 수행한다.
  * 작성 날짜 : 2025/12/17
  * 작성자 : 시스템
  */
@@ -55,7 +55,7 @@ export async function fetchAlerts({
   level = 'ALL',
   from = '',
   to = '',
-  sort = 'collectedAt,desc',
+  sort = 'createdAt,desc',
 } = {}) {
   const lv = normalizeLevel(level);
 
@@ -63,7 +63,7 @@ export async function fetchAlerts({
   const backendPage = Math.max(0, Number(page) || 0) + 1;
 
   const res = await get(
-    `/alerts${toQuery({
+    `/notifications${toQuery({
       page: backendPage,
       size,
       keyword,
@@ -94,54 +94,33 @@ export async function fetchAlerts({
  * 함수 이름 : fetchAlertDetail
  * 기능 : ID로 단일 알림의 상세 정보를 조회한다.
  * 매개변수 : id - 알림 ID
- * 반환값 : Promise - 알림 상세 정보
+ * 반환값 : Promise - 알림 상세 정보 (windowStart, windowEnd, aiLabel, aiScore, topFamily, affectedFilesCount, affectedPaths 포함)
  * 작성 날짜 : 2025/12/17
  * 작성자 : 시스템
  */
 export function fetchAlertDetail(id) {
-  return get(`/alerts/${id}`);
+  return get(`/notifications/${id}`);
 }
 
 /**
  * 함수 이름 : fetchAlertStats
- * 기능 : 알림 통계를 일별 또는 주별로 조회한다. series를 합산하여 counter도 함께 반환한다.
+ * 기능 : 알림 통계를 일별 또는 주별로 조회한다. (현재는 사용하지 않음, 향후 구현 예정)
  * 매개변수 : params - 통계 파라미터 객체 (range: daily|weekly, from: YYYY-MM-DD, to: YYYY-MM-DD)
- * 반환값 : Promise - 통계 데이터 (range, from, to, series, counter 포함)
+ * 반환값 : Promise - 통계 데이터
  * 작성 날짜 : 2025/12/17
  * 작성자 : 시스템
  */
 export async function fetchAlertStats({
-  range = 'daily', // daily | weekly
+  range = 'daily',
   from = '',
   to = '',
 } = {}) {
-  const rg = String(range || 'daily').trim().toLowerCase();
-  const safeRange = rg === 'weekly' ? 'weekly' : 'daily';
-
-  const res = await get(
-    `/alerts/stats${toQuery({
-      range: safeRange,
-      from,
-      to,
-    })}`
-  );
-
-  const series = Array.isArray(res?.series) ? res.series : [];
-
-  const counter = { total: 0, DANGER: 0, WARNING: 0, SAFE: 0, UNKNOWN: 0 };
-  series.forEach((p) => {
-    const w = Number(p?.warning || 0);
-    const d = Number(p?.danger || 0);
-    counter.WARNING += w;
-    counter.DANGER += d;
-  });
-  counter.total = counter.WARNING + counter.DANGER;
-
+  // TODO: 향후 통계 API 구현 시 사용
   return {
-    range: res?.range || safeRange,
-    from: res?.from || from,
-    to: res?.to || to,
-    series,
-    counter,
+    range: range || 'daily',
+    from,
+    to,
+    series: [],
+    counter: { total: 0, DANGER: 0, WARNING: 0, SAFE: 0, UNKNOWN: 0 },
   };
 }
